@@ -350,6 +350,7 @@ function OpenResellerMenu ()
         {label = _U('buy_vehicle'),                    value = 'buy_vehicle'},
         {label = _U('pop_vehicle'),                    value = 'pop_vehicle'},
         {label = _U('depop_vehicle'),                  value = 'depop_vehicle'},
+        {label = _U('sell_back_vehicle'),       value = 'sell_vehicle'},
         {label = _U('create_bill'),                    value = 'create_bill'},
         {label = _U('get_rented_vehicles'),            value = 'get_rented_vehicles'},
         {label = _U('set_vehicle_owner_sell'),         value = 'set_vehicle_owner_sell'},
@@ -363,8 +364,13 @@ function OpenResellerMenu ()
       if data.current.value == 'buy_vehicle' then
         OpenShopMenu()
       end
+
       if data.current.value == 'put_stock' then
         OpenPutStocksMenu()
+      end
+
+      if data.current.value == 'sell_vehicle' then
+        OpenSellVehicleMenu()
       end
 
       if data.current.value == 'get_stock' then
@@ -552,6 +558,35 @@ function OpenPersonnalVehicleMenu ()
           ESX.Game.SetVehicleProperties(vehicle, vehicleData)
           TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
         end)
+      end,
+      function (data, menu)
+        menu.close()
+      end
+    )
+  end)
+end
+
+function OpenSellVehicleMenu()
+  ESX.TriggerServerCallback('esx_vehicleshop:getCommercialVehicles', function (vehicles)
+    local elements = {}
+
+    for i=1, #vehicles, 1 do
+      table.insert(elements, {label = _U('vehicle_name', vehicles[i].name, vehicles[i].price), value = vehicles[i].name, price = vehicles[i].price})
+    end
+
+    ESX.UI.Menu.Open(
+      'default', GetCurrentResourceName(), 'sell_back',
+      {
+        title    = _U('vehicle_dealer'),
+        align    = 'top-left',
+        elements = elements,
+      },
+      function (data, menu)
+        local model = data.current.value
+        TriggerServerEvent('esx_vehicleshop:sellVehicle', model)
+        Citizen.Wait(10)
+        OpenSellVehicleMenu()
+
       end,
       function (data, menu)
         menu.close()

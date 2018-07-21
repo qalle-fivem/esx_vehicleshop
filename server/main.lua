@@ -110,6 +110,28 @@ AddEventHandler('esx_vehicleshop:sellVehicle', function (vehicle)
   )
 end)
 
+RegisterServerEvent('esx_vehicleshop:sellVehicleCompany')
+AddEventHandler('esx_vehicleshop:sellVehicleCompany', function (vehicle)
+  MySQL.Async.fetchAll(
+    'SELECT * FROM cardealer_vehicles WHERE vehicle = @vehicle LIMIT 1',
+    { ['@vehicle'] = vehicle },
+    function (result)
+      local id    = result[1].id
+      local price = result[1].price
+
+      MySQL.Async.execute(
+        'DELETE FROM cardealer_vehicles WHERE id = @id',
+        { ['@id'] = id }
+      )
+
+      TriggerEvent('esx_addonaccount:getSharedAccount', 'society_cardealer', function(account)
+        account.addMoney(price)
+      end)
+      
+    end
+  )
+end)
+
 RegisterServerEvent('esx_vehicleshop:rentVehicle')
 AddEventHandler('esx_vehicleshop:rentVehicle', function (vehicle, plate, playerName, basePrice, rentPrice, target)
   local xPlayer = ESX.GetPlayerFromId(target)
